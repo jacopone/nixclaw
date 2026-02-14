@@ -15,7 +15,7 @@
         pname = "nixclaw";
         version = "0.1.0";
         src = ./.;
-        npmDepsHash = "";
+        npmDepsHash = "sha256-a76JqfEuYk7UkNk2CtM5ORgNJr/hFwmfidI6AMKi1LE=";
         nodejs = pkgs.nodejs_22;
         installPhase = ''
           runHook preInstall
