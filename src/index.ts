@@ -4,6 +4,8 @@ import { StateStore } from "./core/state.js";
 import { PluginHost } from "./core/plugin-host.js";
 import { Agent } from "./core/agent.js";
 import { TerminalChannel } from "./channels/terminal/index.js";
+import { TelegramChannel } from "./channels/telegram/index.js";
+import { NixOSToolsPlugin } from "./tools/nixos/index.js";
 import { mkdirSync } from "node:fs";
 
 async function main() {
@@ -18,6 +20,14 @@ async function main() {
   const pluginHost = new PluginHost(eventBus, state);
 
   await pluginHost.register(new TerminalChannel(), {});
+
+  if (config.channels.telegram.enable) {
+    await pluginHost.register(new TelegramChannel(), config.channels.telegram as unknown as Record<string, unknown>);
+  }
+
+  if (config.tools.nixos.enable) {
+    await pluginHost.register(new NixOSToolsPlugin(), config.tools.nixos as unknown as Record<string, unknown>);
+  }
 
   await pluginHost.initAll();
 
