@@ -6,6 +6,10 @@ import { Agent } from "./core/agent.js";
 import { TerminalChannel } from "./channels/terminal/index.js";
 import { TelegramChannel } from "./channels/telegram/index.js";
 import { NixOSToolsPlugin } from "./tools/nixos/index.js";
+import { WebUIChannel } from "./channels/webui/index.js";
+import { McpClientManager } from "./core/mcp-client.js";
+import { DevToolsPlugin } from "./tools/dev/index.js";
+import { SchedulerPlugin } from "./tools/scheduler/index.js";
 import { mkdirSync } from "node:fs";
 
 async function main() {
@@ -25,8 +29,26 @@ async function main() {
     await pluginHost.register(new TelegramChannel(), config.channels.telegram as unknown as Record<string, unknown>);
   }
 
+  if (config.channels.webui.enable) {
+    await pluginHost.register(new WebUIChannel(), config.channels.webui as unknown as Record<string, unknown>);
+  }
+
   if (config.tools.nixos.enable) {
     await pluginHost.register(new NixOSToolsPlugin(), config.tools.nixos as unknown as Record<string, unknown>);
+  }
+
+  if (config.tools.dev.enable) {
+    await pluginHost.register(new DevToolsPlugin(), {});
+  }
+
+  await pluginHost.register(new SchedulerPlugin(), {});
+
+  // Connect to external MCP servers
+  const mcpManager = new McpClientManager(config.mcp?.servers ?? {});
+  await mcpManager.connectAll();
+  const mcpTools = await mcpManager.getAllTools();
+  for (const tool of mcpTools) {
+    pluginHost.registerExternalTool(tool);
   }
 
   await pluginHost.initAll();
@@ -36,6 +58,7 @@ async function main() {
   const shutdown = async () => {
     console.log("\nShutting down...");
     await pluginHost.shutdownAll();
+    await mcpManager.disconnectAll();
     state.close();
     process.exit(0);
   };
