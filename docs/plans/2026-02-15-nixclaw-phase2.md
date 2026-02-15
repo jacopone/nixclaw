@@ -81,7 +81,7 @@ describe("safe-exec", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/observe/safe-exec.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/observe/safe-exec.test.ts`
 Expected: FAIL — module not found
 
 **Step 3: Write implementation**
@@ -167,13 +167,13 @@ export async function safeExec(
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/observe/safe-exec.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/observe/safe-exec.test.ts`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/tools/observe/safe-exec.ts src/tools/observe/safe-exec.test.ts
 git commit -m "feat: add safe command execution with allowlist and argument sanitization"
 ```
@@ -256,7 +256,7 @@ describe("ObservePlugin", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/observe/index.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/observe/index.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -422,13 +422,13 @@ export class ObservePlugin implements NixClawPlugin {
 
 **Step 4: Run tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/observe/`
+Run: `cd ~/nixclaw && npx vitest run src/tools/observe/`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/tools/observe/index.ts src/tools/observe/index.test.ts
 git commit -m "feat: add observation tools plugin (processes, resources, journal, network, read_file, query)"
 ```
@@ -499,7 +499,7 @@ describe("loadPersonality", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/personality.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/personality.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -540,7 +540,7 @@ export function loadPersonality(workspaceDir: string): string {
 
 **Step 4: Run test**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/personality.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/personality.test.ts`
 Expected: PASS
 
 **Step 5: Update config to add `workspaceDir`**
@@ -556,13 +556,13 @@ Modify `src/core/agent.ts`:
 
 **Step 7: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All 47+ tests pass
 
 **Step 8: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/core/personality.ts src/core/personality.test.ts src/core/config.ts src/core/agent.ts
 git commit -m "feat: add personality system — load IDENTITY.md, SOUL.md, USER.md from workspace"
 ```
@@ -657,7 +657,7 @@ describe("HeartbeatPlugin", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/heartbeat/index.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/heartbeat/index.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -719,13 +719,13 @@ export class HeartbeatPlugin implements NixClawPlugin {
 
 **Step 4: Run test**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/heartbeat/index.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/heartbeat/index.test.ts`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/tools/heartbeat/index.ts src/tools/heartbeat/index.test.ts
 git commit -m "feat: add heartbeat service — reads HEARTBEAT.md and triggers agent periodically"
 ```
@@ -792,7 +792,7 @@ describe("ToolPolicy", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/tool-policy.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/tool-policy.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -835,7 +835,7 @@ export function evaluatePolicy(
 
 **Step 4: Run test**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/tool-policy.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/tool-policy.test.ts`
 Expected: PASS
 
 **Step 5: Integrate into PluginHost**
@@ -851,13 +851,13 @@ Modify `src/core/agent.ts` so `handleMessage` calls `pluginHost.getToolsForConte
 
 **Step 7: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All tests pass
 
 **Step 8: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/core/tool-policy.ts src/core/tool-policy.test.ts src/core/plugin-host.ts src/core/agent.ts
 git commit -m "feat: add tool policy engine — per-tool, per-channel, per-user allow/deny/approve"
 ```
@@ -973,7 +973,7 @@ describe("ApprovalStore", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/approval.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/approval.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -1048,7 +1048,7 @@ Note: The `requestApproval` method must also maintain the `_pending_index`. Add 
 
 **Step 4: Run test**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/core/approval.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/core/approval.test.ts`
 Expected: PASS
 
 **Step 5: Add WebUI approval API endpoints**
@@ -1063,13 +1063,13 @@ Modify `src/channels/webui/routes.ts` — add three new routes:
 
 **Step 6: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All tests pass
 
 **Step 7: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/core/approval.ts src/core/approval.test.ts src/channels/webui/routes.ts
 git commit -m "feat: add approval workflow — store, API endpoints for remote permission management"
 ```
@@ -1114,7 +1114,7 @@ describe("parseApprovalCommand", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/channels/telegram/approval.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/channels/telegram/approval.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -1136,13 +1136,13 @@ Then modify `src/channels/telegram/index.ts`:
 
 **Step 4: Run tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/channels/telegram/`
+Run: `cd ~/nixclaw && npx vitest run src/channels/telegram/`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/channels/telegram/approval.ts src/channels/telegram/approval.test.ts src/channels/telegram/index.ts
 git commit -m "feat: add Telegram /allow and /deny commands for remote approval workflow"
 ```
@@ -1205,8 +1205,8 @@ echo '{"decision": "deny"}'
 **Step 2: Make executable and commit**
 
 ```bash
-chmod +x /home/guyfawkes/nixclaw/scripts/nixclaw-hook.sh
-cd /home/guyfawkes/nixclaw
+chmod +x ~/nixclaw/scripts/nixclaw-hook.sh
+cd ~/nixclaw
 git add scripts/nixclaw-hook.sh
 git commit -m "feat: add Claude Code PreToolUse hook script for remote approval via NixClaw"
 ```
@@ -1258,7 +1258,7 @@ describe("NixOS Generations", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/nixos/generations.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/nixos/generations.test.ts`
 Expected: FAIL
 
 **Step 3: Write implementation**
@@ -1378,7 +1378,7 @@ export async function diffGenerations(gen1: number, gen2: number): Promise<strin
 
 **Step 4: Run test**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run src/tools/nixos/generations.test.ts`
+Run: `cd ~/nixclaw && npx vitest run src/tools/nixos/generations.test.ts`
 Expected: PASS
 
 **Step 5: Register generation tools in NixOS plugin**
@@ -1389,13 +1389,13 @@ Modify `src/tools/nixos/index.ts` to add two new tools:
 
 **Step 6: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All tests pass
 
 **Step 7: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/tools/nixos/generations.ts src/tools/nixos/generations.test.ts src/tools/nixos/index.ts
 git commit -m "feat: add NixOS generation diffing — compare closures between generations"
 ```
@@ -1435,13 +1435,13 @@ ctx.registerTool({
 
 **Step 3: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All tests pass
 
 **Step 4: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/tools/nixos/commands.ts src/tools/nixos/index.ts
 git commit -m "feat: add nixos-option query tool for declarative state inspection"
 ```
@@ -1526,7 +1526,7 @@ The actual summarization (calling Claude to summarize) happens in `Agent.handleM
 **Step 3: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/ai/context.ts src/ai/context-summarizer.test.ts
 git commit -m "feat: add conversation summarization — auto-summarize when context exceeds threshold"
 ```
@@ -1635,7 +1635,7 @@ Then modify `src/channels/telegram/index.ts`:
 **Step 3: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/channels/telegram/pairing.ts src/channels/telegram/pairing.test.ts src/channels/telegram/index.ts
 git commit -m "feat: add Telegram DM pairing — unknown users must enter pairing code"
 ```
@@ -1681,13 +1681,13 @@ Add options:
 
 **Step 4: Run full tests**
 
-Run: `cd /home/guyfawkes/nixclaw && npx vitest run`
+Run: `cd ~/nixclaw && npx vitest run`
 Expected: All tests pass
 
 **Step 5: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add src/index.ts src/core/config.ts nix/module.nix
 git commit -m "feat: wire Phase 2 plugins — observe, heartbeat, security into main entry point"
 ```
@@ -1700,19 +1700,19 @@ git commit -m "feat: wire Phase 2 plugins — observe, heartbeat, security into 
 
 **Step 1: Run `nix build`**
 
-Run: `cd /home/guyfawkes/nixclaw && nix build 2>&1`
+Run: `cd ~/nixclaw && nix build 2>&1`
 
 If it fails with hash mismatch, update `npmDepsHash` in `flake.nix` with the correct hash from the error output.
 
 **Step 2: Verify build**
 
-Run: `cd /home/guyfawkes/nixclaw && ls -la result/bin/nixclaw`
+Run: `cd ~/nixclaw && ls -la result/bin/nixclaw`
 Expected: binary exists
 
 **Step 3: Commit**
 
 ```bash
-cd /home/guyfawkes/nixclaw
+cd ~/nixclaw
 git add flake.nix
 git commit -m "chore: update npmDepsHash for Phase 2 dependencies"
 ```
