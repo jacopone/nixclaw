@@ -39,3 +39,7 @@ export async function listServices(): Promise<string> {
     "--no-legend",
   ]);
 }
+
+export async function nixosOption(optionPath: string): Promise<string> {
+  return runCommand("nixos-option", [optionPath]);
+}

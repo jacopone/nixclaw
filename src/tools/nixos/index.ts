@@ -5,7 +5,9 @@ import {
   flakeCheck,
   serviceStatus,
   listServices,
+  nixosOption,
 } from "./commands.js";
+import { listGenerations, diffGenerations } from "./generations.js";
 
 interface NixOSToolsConfig {
   flakePath?: string;
@@ -58,7 +60,42 @@ export class NixOSToolsPlugin implements NixClawPlugin {
       run: async () => listServices(),
     });
 
-    ctx.logger.info(`NixOS tools registered (flakePath: ${flakePath})`);
+    ctx.registerTool({
+      name: "nixclaw_generations",
+      description:
+        "List NixOS system generations with dates and current marker. Shows the history of system configurations.",
+      inputSchema: z.object({}),
+      run: async () => listGenerations(),
+    });
+
+    ctx.registerTool({
+      name: "nixclaw_generation_diff",
+      description:
+        "Compare two NixOS generations showing added, removed, and changed packages. Use this to understand what changed between system rebuilds.",
+      inputSchema: z.object({
+        gen1: z.number().describe("First (older) generation number"),
+        gen2: z.number().describe("Second (newer) generation number"),
+      }),
+      run: async (input) => {
+        const { gen1, gen2 } = input as { gen1: number; gen2: number };
+        return diffGenerations(gen1, gen2);
+      },
+    });
+
+    ctx.registerTool({
+      name: "nixclaw_nixos_option",
+      description:
+        "Query the current value and description of a NixOS configuration option (e.g. 'services.openssh.enable', 'networking.firewall.allowedTCPPorts')",
+      inputSchema: z.object({
+        option: z.string().describe("NixOS option path, e.g. 'services.openssh.enable'"),
+      }),
+      run: async (input) => {
+        const { option } = input as { option: string };
+        return nixosOption(option);
+      },
+    });
+
+    ctx.logger.info(`NixOS tools registered: 7 tools (flakePath: ${flakePath})`);
   }
 
   async shutdown(): Promise<void> {}
