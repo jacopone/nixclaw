@@ -6,6 +6,8 @@ import { createSTT } from "../../voice/stt.js";
 import { createTTS } from "../../voice/tts.js";
 import type { STTProvider } from "../../voice/stt.js";
 import type { TTSProvider } from "../../voice/tts.js";
+import { parseApprovalCommand } from "./approval.js";
+import { PairingManager } from "./pairing.js";
 
 interface TelegramConfig {
   botTokenFile: string;
@@ -20,7 +22,7 @@ export class TelegramChannel implements NixClawPlugin {
   name = "telegram";
   version = "0.1.0";
   private bot?: Bot;
-  private cleanup?: () => void;
+  private cleanups: Array<() => void> = [];
   private stt?: STTProvider;
   private tts?: TTSProvider;
   private ttsEnabled = false;
@@ -51,6 +53,7 @@ export class TelegramChannel implements NixClawPlugin {
 
     const token = readFileSync(config.botTokenFile, "utf-8").trim();
     const allowedUsers = config.allowedUsers ?? [];
+    const pairing = new PairingManager(allowedUsers);
 
     // Initialize voice providers if configured
     if (config.voice) {
@@ -70,8 +73,34 @@ export class TelegramChannel implements NixClawPlugin {
 
     this.bot.on("message:text", async (gramCtx) => {
       const userId = String(gramCtx.from.id);
-      if (!this.isAllowedUser(userId, allowedUsers)) {
-        await gramCtx.reply("Access denied.");
+      const text = gramCtx.message.text;
+
+      // Check if user is authorized via pairing
+      if (!pairing.isAuthorized(userId)) {
+        // Check if this is a pairing code attempt (6 digits)
+        const codeMatch = text.match(/^\d{6}$/);
+        if (codeMatch) {
+          const success = pairing.completePairing(userId, text);
+          if (success) {
+            await gramCtx.reply("✓ Pairing successful! You now have access to NixClaw.");
+          } else {
+            await gramCtx.reply("✗ Invalid pairing code. Try again.");
+          }
+          return;
+        }
+
+        // Unknown user — generate pairing code and log it
+        const code = pairing.requestPairing(userId);
+        ctx.logger.info(`Pairing code for user ${userId}: ${code}`);
+        await gramCtx.reply("🔐 Access requires pairing. A 6-digit code has been generated — check the NixClaw server logs or ask the admin.");
+        return;
+      }
+
+      // Check for approval commands
+      const approvalCmd = parseApprovalCommand(text);
+      if (approvalCmd) {
+        ctx.eventBus.emit("approval:decide", approvalCmd);
+        await gramCtx.reply(`✓ Sent ${approvalCmd.decision} for request ${approvalCmd.id}`);
         return;
       }
 
@@ -79,7 +108,7 @@ export class TelegramChannel implements NixClawPlugin {
         id: randomUUID(),
         channel: "telegram",
         sender: userId,
-        text: gramCtx.message.text,
+        text,
         timestamp: new Date(gramCtx.message.date * 1000),
       };
       ctx.eventBus.emit("message:incoming", msg);
@@ -87,8 +116,8 @@ export class TelegramChannel implements NixClawPlugin {
 
     this.bot.on("message:voice", async (gramCtx) => {
       const userId = String(gramCtx.from.id);
-      if (!this.isAllowedUser(userId, allowedUsers)) {
-        await gramCtx.reply("Access denied.");
+      if (!pairing.isAuthorized(userId)) {
+        await gramCtx.reply("Access denied. Send a text message first to start pairing.");
         return;
       }
 
@@ -119,7 +148,7 @@ export class TelegramChannel implements NixClawPlugin {
       }
     });
 
-    this.cleanup = ctx.eventBus.on("message:response", async (payload: unknown) => {
+    this.cleanups.push(ctx.eventBus.on("message:response", async (payload: unknown) => {
       const response = payload as { channel: string; sender: string; text: string };
       if (response.channel !== "telegram") return;
 
@@ -150,13 +179,43 @@ export class TelegramChannel implements NixClawPlugin {
           ctx.logger.error("Failed to send Telegram message:", fallbackErr);
         }
       }
+    }));
+
+    // Listen for approval requests and notify via Telegram
+    const approvalCleanup = ctx.eventBus.on("approval:request", async (payload: unknown) => {
+      const req = payload as { id: string; tool: string; input: string; session: string };
+      if (!req) return;
+      const notifyUser = allowedUsers[0];
+      if (!notifyUser || !this.bot) return;
+
+      const message = `🔐 Approval Request [${req.id}]\n\nTool: ${req.tool}\nInput: ${req.input}\nSession: ${req.session}\n\nReply:\n/allow ${req.id}\n/deny ${req.id}`;
+      try {
+        await this.bot.api.sendMessage(Number(notifyUser), message);
+      } catch (err) {
+        ctx.logger.error("Failed to send approval notification:", err);
+      }
+    });
+    this.cleanups.push(approvalCleanup);
+
+    ctx.eventBus.on("approval:decide", async (payload: unknown) => {
+      const cmd = payload as { decision: "allow" | "deny"; id: string };
+      // POST to local WebUI approval endpoint
+      try {
+        await fetch(`http://localhost:${(ctx.config as any).webuiPort ?? 3344}/api/approve/${cmd.id}/decide`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision: cmd.decision }),
+        });
+      } catch (err) {
+        ctx.logger.error("Failed to submit approval decision:", err);
+      }
     });
 
     this.bot.start({ onStart: () => ctx.logger.info("Telegram bot started") });
   }
 
   async shutdown(): Promise<void> {
-    this.cleanup?.();
+    this.cleanups.forEach(fn => fn());
     this.bot?.stop();
   }
 }

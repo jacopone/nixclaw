@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { EventBus } from "../../core/event-bus.js";
 import type { StateStore } from "../../core/state.js";
+import { ApprovalStore } from "../../core/approval.js";
 import { randomUUID } from "node:crypto";
 import type { NixClawMessage } from "../../core/types.js";
 
@@ -9,6 +10,8 @@ export function registerRoutes(
   eventBus: EventBus,
   state: StateStore,
 ): void {
+  const approvals = new ApprovalStore(state);
+
   app.get("/api/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
   app.post<{ Body: { text: string } }>("/api/chat", async (req) => {
@@ -39,6 +42,36 @@ export function registerRoutes(
 
     req.raw.on("close", () => off());
   });
+
+  // POST /api/approve — create approval request (called by Claude Code hook)
+  app.post<{ Body: { tool: string; input: string; session: string; requester: string } }>(
+    "/api/approve",
+    async (req) => {
+      const { tool, input, session, requester } = req.body;
+      const id = approvals.requestApproval({ tool, input, session, requester });
+      // Notify via EventBus so Telegram can send alert
+      eventBus.emit("approval:request", approvals.get(id));
+      return { id, status: "pending" };
+    },
+  );
+
+  // GET /api/approve/:id — poll approval status (called by Claude Code hook)
+  app.get<{ Params: { id: string } }>("/api/approve/:id", async (req) => {
+    const approval = approvals.get(req.params.id);
+    if (!approval) return { error: "not found" };
+    return approval;
+  });
+
+  // POST /api/approve/:id/decide — submit decision (called by Telegram handler)
+  app.post<{ Params: { id: string }; Body: { decision: "allow" | "deny" } }>(
+    "/api/approve/:id/decide",
+    async (req) => {
+      approvals.decide(req.params.id, req.body.decision);
+      const updated = approvals.get(req.params.id);
+      eventBus.emit("approval:decided", updated);
+      return updated ?? { error: "not found" };
+    },
+  );
 
   app.get("/", async (req, reply) => {
     reply.type("text/html").send(DASHBOARD_HTML);

@@ -1,6 +1,8 @@
 import type { EventBus } from "./event-bus.js";
 import type { StateStore } from "./state.js";
 import type { NixClawPlugin, PluginContext, Tool, Logger } from "./types.js";
+import { evaluatePolicy } from "./tool-policy.js";
+import type { ToolPolicy } from "./tool-policy.js";
 
 function createLogger(pluginName: string): Logger {
   const prefix = `[${pluginName}]`;
@@ -20,6 +22,7 @@ interface RegisteredPlugin {
 export class PluginHost {
   private plugins: RegisteredPlugin[] = [];
   private tools: Tool[] = [];
+  private policies: ToolPolicy[] = [];
 
   constructor(
     private eventBus: EventBus,
@@ -54,6 +57,17 @@ export class PluginHost {
 
   getTools(): Tool[] {
     return this.tools;
+  }
+
+  setPolicies(policies: ToolPolicy[]): void {
+    this.policies = policies;
+  }
+
+  getToolsForContext(channel: string, sender: string): Tool[] {
+    return this.tools.filter((tool) => {
+      const decision = evaluatePolicy(this.policies, tool.name, channel, sender);
+      return decision !== "deny";
+    });
   }
 
   registerExternalTool(tool: Tool): void {
